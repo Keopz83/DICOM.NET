@@ -1,13 +1,9 @@
-﻿using DicomReader.DicomObjects;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
-namespace DicomReader
-{
+namespace joselima.dicom {
+
     public class Parser {
 
         static readonly int PREAMBLE_SIZE_BYTES = 128;
@@ -23,12 +19,12 @@ namespace DicomReader
 
         private bool _isExplicitVr = true;
 
-        public DicomObjects.File ReadFile(string absolutePath, Tag lastTag = null) {
+        public File ReadFile(string absolutePath, Tag lastTag = null) {
             return ReadFile(absolutePath, lastTag?.ID ?? 0);
         }
 
 
-        public DicomObjects.File ReadFile(string absolutePath, UInt32 lastTagId = 0) {
+        public File ReadFile(string absolutePath, UInt32 lastTagId = 0) {
 
             _lastTagId = lastTagId;
 
@@ -66,13 +62,13 @@ namespace DicomReader
                     var value = ParseNextValue(file, vr, valueLength);
                     Console.Write($"\t{value.ToString()}");
 
-                    var newAttribute = new DicomObjects.Attribute(tag, value);
+                    var newAttribute = new Attribute(tag, value);
                     attributeSet.Add(newAttribute.Tag.ID, newAttribute);
                     Console.WriteLine();
                 }
                 
 
-                return new DicomObjects.File() {
+                return new File() {
                     IsVRExplicit = _isExplicitVr,
                     Attributes = attributeSet
                 };

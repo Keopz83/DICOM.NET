@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DicomReader.DicomObjects {
+namespace joselima.dicom {
 
     public class Attribute {
 

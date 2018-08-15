@@ -40,13 +40,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DicomObjects\Attribute.cs" />
-    <Compile Include="DicomObjects\AttributeSet.cs" />
-    <Compile Include="DicomObjects\File.cs" />
-    <Compile Include="DicomObjects\Tag.cs" />
-    <Compile Include="DicomObjects\TagsDictionary.cs" />
-    <Compile Include="DicomObjects\VR.cs" />
-    <Compile Include="Parser.cs" />
+    <Compile Include="Core\Attribute.cs" />
+    <Compile Include="Core\AttributeSet.cs" />
+    <Compile Include="Core\File.cs" />
+    <Compile Include="Core\Tag.cs" />
+    <Compile Include="Core\TagsDictionary.cs" />
+    <Compile Include="Core\VR.cs" />
+    <Compile Include="Reader.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
