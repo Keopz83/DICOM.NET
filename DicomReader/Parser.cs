@@ -8,22 +8,33 @@ using System.Threading.Tasks;
 
 namespace DicomReader
 {
-    public class Parser
-    {
+    public class Parser {
+
         static readonly int PREAMBLE_SIZE_BYTES = 128;
         static readonly int PREFIX_SIZE_BYTES = 4;
-        static readonly int TAG_ID_SIZE_BYTES = 4;
         static readonly int GROUP_SIZE_BYTES = 2;
         static readonly int ELEMENT_SIZE_BYTES = 2;
-        static readonly int LENGTH_SIZE_BYTES = 2;
+        static readonly int LENGTH_SIZE_BYTES_EXPLICIT_VR = 4;
+        static readonly int LENGTH_SIZE_BYTES_IMPLICIT_VR = 2;
         static readonly int VR_SIZE_BYTES = 2;
         static readonly string DICM_PREFIX = "DICM";
 
-        public static Dictionary<Tag, DicomObjects.Attribute> ReadFile(string absolutePath) {
+        private UInt32 _lastTagId;
 
-            var isVrExplicit = false;
+        private bool _isExplicitVr = true;
+
+        public DicomObjects.File ReadFile(string absolutePath, Tag lastTag = null) {
+            return ReadFile(absolutePath, lastTag?.ID ?? 0);
+        }
+
+
+        public DicomObjects.File ReadFile(string absolutePath, UInt32 lastTagId = 0) {
+
+            _lastTagId = lastTagId;
+
             var streamPos = 0;
-            using(var file = File.OpenRead(absolutePath)) {
+            var attributeSet = new AttributeSet();
+            using(var file = System.IO.File.OpenRead(absolutePath)) {
 
                 //Preamble
                 var preamble = new byte[PREAMBLE_SIZE_BYTES];
@@ -39,55 +50,130 @@ namespace DicomReader
                 }
 
 
-                //Tag group number
-                var groupRaw = new byte[GROUP_SIZE_BYTES];
-                streamPos += file.Read(groupRaw, 0, groupRaw.Length);
+                while (true) {
 
-                //Tag element number
-                var elementRaw = new byte[ELEMENT_SIZE_BYTES];
-                streamPos += file.Read(elementRaw, 0, elementRaw.Length);
+                    Tag tag = ParseNextTag(file);
+                    Console.Write($"{tag}");
+                    if (_lastTagId > 0 && tag.ID > _lastTagId) break;
 
-                int tagId = BitConverter.ToInt16(groupRaw, 0) << 16 + BitConverter.ToInt16(elementRaw, 0);
-                var tag = TagsDictionary.Index[(UInt32)tagId];
+                    VR vr = ParseVr(file, _isExplicitVr);
+                    tag.VR = vr;
+                    Console.Write($"\t{vr.ToString()}");
 
-                //Value Representation (VR)
-                var vrRaw = new byte[ELEMENT_SIZE_BYTES];
-                streamPos += file.Read(vrRaw, 0, vrRaw.Length);
+                    int valueLength = ParseValueLength(file, _isExplicitVr, vr);
+                    Console.Write($"\t{valueLength}");
 
-                string vrUTF8 = Encoding.UTF8.GetString(vrRaw, 0, vrRaw.Length);
-                var result = Enum.TryParse(vrUTF8, out VR vr);
+                    var value = ParseNextValue(file, vr, valueLength);
+                    Console.Write($"\t{value.ToString()}");
 
-                if (result) {
-                    isVrExplicit = true;
-                    Console.WriteLine("Explicit VR.");
+                    var newAttribute = new DicomObjects.Attribute(tag, value);
+                    attributeSet.Add(newAttribute.Tag.ID, newAttribute);
+                    Console.WriteLine();
                 }
+                
 
-                //Value length
-                var lengthRaw = new byte[LENGTH_SIZE_BYTES];
-                streamPos += file.Read(lengthRaw, 0, lengthRaw.Length);
-                var valueLength = BitConverter.ToInt16(lengthRaw, 0);
-
-                //Value
-                var valueRaw = new byte[valueLength];
-                streamPos += file.Read(valueRaw, 0, valueRaw.Length);
-                object value = ParseValue(vr, valueRaw);
-
-                return new Dictionary<Tag, DicomObjects.Attribute>() {
-                    {tag, new DicomObjects.Attribute(tag, value) }
+                return new DicomObjects.File() {
+                    IsVRExplicit = _isExplicitVr,
+                    Attributes = attributeSet
                 };
-
             }
 
-
-            return null;
         }
+
+        private object ParseNextValue(FileStream file, VR vr, int valueLength) {
+
+            if (valueLength == 0) {
+                return null;
+            }
+
+            //Value
+            var valueRaw = new byte[valueLength];
+            file.Read(valueRaw, 0, valueRaw.Length);
+            object value = ParseValue(vr, valueRaw);
+
+            return value;
+        }
+
+
+        private static VR ParseVr(FileStream file, bool isExplicitVr) {
+            var vrRaw = new byte[VR_SIZE_BYTES];
+            file.Read(vrRaw, 0, vrRaw.Length);
+
+            string vrUTF8 = Encoding.UTF8.GetString(vrRaw, 0, vrRaw.Length);
+            var result = Enum.TryParse(vrUTF8, out VR vr);
+
+            //2 bytes empty after VR for VRs: OB, OW, OF, SQ and UN
+            switch (vr) {
+                case VR.OB:
+                case VR.OW:
+                case VR.OF:
+                case VR.SQ:
+                case VR.UN:
+                    file.Read(new byte[2], 0, 2);
+                    break;
+                default:
+                    break;
+            }
+
+            return vr;
+        }
+
+
+        private static int ParseValueLength(FileStream file, bool isExplicitVr, VR vr) {
+
+            var valueLengthByteLength = 2;
+
+            //4 bytes if Explicit & VR for VRs: OB, OW, OF, SQ and UN, or Implict
+            //otherwise 2 bytes
+            if (!isExplicitVr) {
+                valueLengthByteLength = 4;
+            }
+            else {
+                switch (vr) {
+                    case VR.OB:
+                    case VR.OW:
+                    case VR.OF:
+                    case VR.SQ:
+                    case VR.UN:
+                        valueLengthByteLength = 4;
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            var lengthRaw = new byte[valueLengthByteLength];
+            file.Read(lengthRaw, 0, lengthRaw.Length);
+            var valueLength = valueLengthByteLength == 2 ? BitConverter.ToInt16(lengthRaw, 0) : BitConverter.ToInt32(lengthRaw, 0);
+            
+            return valueLength;
+        }
+
+
+        private static Tag ParseNextTag(FileStream file) {
+
+            //Tag group number
+            var groupRaw = new byte[GROUP_SIZE_BYTES];
+            file.Read(groupRaw, 0, groupRaw.Length);
+
+            //Tag element number
+            var elementRaw = new byte[ELEMENT_SIZE_BYTES];
+            file.Read(elementRaw, 0, elementRaw.Length);
+
+            int tagId = (BitConverter.ToInt16(groupRaw, 0) << 16) + BitConverter.ToInt16(elementRaw, 0);
+            var tag = TagsDictionary.Get((UInt32)tagId);
+
+            return tag;
+        }
+
 
         private static object ParseValue(VR vr, byte[] rawValue) {
 
             switch (vr) {
-
+                case VR.PN:
+                case VR.SH:
+                case VR.UI: return Encoding.UTF8.GetString(rawValue, 0, rawValue.Length).Trim();
                 case VR.UL: return BitConverter.ToUInt32(rawValue, 0);
-
                 default: return rawValue;
             }
         }

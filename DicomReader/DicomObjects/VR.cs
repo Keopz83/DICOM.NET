@@ -11,19 +11,16 @@ namespace DicomReader.DicomObjects {
     /// </summary>
     public enum VR {
 
-        /// <summary>
-        /// ...
-        /// </summary>
-        UL,
-
-        /// <summary>
-        /// Person Name.
-        /// </summary>
+        AE, AS, AT,
+        CS,
+        DA, DS, DT,
+        FL, FD,
+        IS,
+        LO, LT,
+        OB, OD, OF, OW,
         PN,
-
-        /// <summary>
-        /// ...
-        /// </summary>
-        LO
+        SH, SL, SQ, SS, ST,
+        TM,
+        UI, UL, UN, US, UT
     }
 }

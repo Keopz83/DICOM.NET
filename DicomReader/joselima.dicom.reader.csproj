@@ -41,6 +41,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DicomObjects\Attribute.cs" />
+    <Compile Include="DicomObjects\AttributeSet.cs" />
+    <Compile Include="DicomObjects\File.cs" />
     <Compile Include="DicomObjects\Tag.cs" />
     <Compile Include="DicomObjects\TagsDictionary.cs" />
     <Compile Include="DicomObjects\VR.cs" />

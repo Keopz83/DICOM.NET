@@ -16,7 +16,7 @@ namespace DicomReader.DicomObjects {
 
         public string Description { get; }
 
-        public VR VR { get; }
+        public VR VR { get; set; }
 
         public Tag(UInt16 group, UInt16 element, VR vr, string description): 
             this((UInt32)((group << 16) + element), vr, description) {
