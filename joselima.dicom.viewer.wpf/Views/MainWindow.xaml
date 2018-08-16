@@ -1,0 +1,52 @@
+﻿<Window x:Class="joselima.dicom.viewer.wpf.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:joselima.dicom.viewer.wpf"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
+        xmlns:vm="clr-namespace:joselima.dicom.viewer.wpf.ViewModels"
+        mc:Ignorable="d"
+        Title="DICOM Viewer" MinHeight="250" MinWidth="350" 
+        Background="#FF1F1F1F"
+        ResizeMode="CanResize" SizeToContent="WidthAndHeight"
+        >
+
+    <Window.Resources>
+        <vm:DataSetViewModel x:Key="MockDataSet">
+            <vm:DataSetViewModel.Items>
+                <vm:AttributeViewModel Tag="Tag 1" Value="Value 1"/>
+                <vm:AttributeViewModel Tag="Tag 2" Value="Value 2"/>
+                <vm:AttributeViewModel Tag="Tag 3" Value="Value 3"/>
+            </vm:DataSetViewModel.Items>
+        </vm:DataSetViewModel>
+    </Window.Resources>
+
+    <Grid>
+        <StackPanel>
+
+
+            <Border Background="#111111" Height="100" Margin="8,8,8,0">
+                <Label Content="Drop DICOM file or folder..." 
+                       Foreground="#333333"/>
+            </Border>
+            <ScrollViewer VerticalScrollBarVisibility="Auto" 
+                          MaxHeight="500"
+                          Margin="8">
+            <ItemsControl d:DataContext="{StaticResource MockDataSet}" 
+                          ItemsSource="{Binding Items}" >
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border BorderBrush="#222222" BorderThickness="1" Background="#333333" >
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="{Binding Tag}" Foreground="LightGray" Margin="4"/>
+                                <TextBlock Text="{Binding Value}" Foreground="LightGray" Margin="4"/>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+        </StackPanel>
+    </Grid>
+</Window>
