@@ -4,7 +4,7 @@ using System.Text;
 
 namespace joselima.dicom {
 
-    public class Parser {
+    public class FileParser {
 
         static readonly int PREAMBLE_SIZE_BYTES = 128;
         static readonly int PREFIX_SIZE_BYTES = 4;
@@ -19,18 +19,18 @@ namespace joselima.dicom {
 
         private bool _isExplicitVr = true;
 
-        public File ReadFile(string absolutePath, Tag lastTag = null) {
-            return ReadFile(absolutePath, lastTag?.ID ?? 0);
+        public File Parse(string fileAbsolutePath, Tag lastTag = null) {
+            return Parse(fileAbsolutePath, lastTag?.ID ?? 0);
         }
 
 
-        public File ReadFile(string absolutePath, UInt32 lastTagId = 0) {
+        public File Parse(string fileAbsolutePath, UInt32 lastTagId = 0) {
 
             _lastTagId = lastTagId;
 
             var streamPos = 0;
             var attributeSet = new AttributeSet();
-            using(var file = System.IO.File.OpenRead(absolutePath)) {
+            using(var file = System.IO.File.OpenRead(fileAbsolutePath)) {
 
                 //Preamble
                 var preamble = new byte[PREAMBLE_SIZE_BYTES];
@@ -85,7 +85,7 @@ namespace joselima.dicom {
             //Value
             var valueRaw = new byte[valueLength];
             file.Read(valueRaw, 0, valueRaw.Length);
-            object value = ParseValue(vr, valueRaw);
+            object value = ValueParser.ParseValue(vr, valueRaw);
 
             return value;
         }
@@ -163,15 +163,6 @@ namespace joselima.dicom {
         }
 
 
-        private static object ParseValue(VR vr, byte[] rawValue) {
-
-            switch (vr) {
-                case VR.PN:
-                case VR.SH:
-                case VR.UI: return Encoding.UTF8.GetString(rawValue, 0, rawValue.Length).Trim();
-                case VR.UL: return BitConverter.ToUInt32(rawValue, 0);
-                default: return rawValue;
-            }
-        }
+        
     }
 }

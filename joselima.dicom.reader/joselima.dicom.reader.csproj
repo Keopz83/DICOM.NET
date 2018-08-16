@@ -7,8 +7,8 @@
     <ProjectGuid>{73AC8640-F8A1-45C6-85A5-D84B350DED54}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>DicomReader</RootNamespace>
-    <AssemblyName>DicomReader</AssemblyName>
+    <RootNamespace>joselima.dicom</RootNamespace>
+    <AssemblyName>joselima.dicom</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -46,8 +46,9 @@
     <Compile Include="Core\Tag.cs" />
     <Compile Include="Core\TagsDictionary.cs" />
     <Compile Include="Core\VR.cs" />
-    <Compile Include="Reader.cs" />
+    <Compile Include="FileParser.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ValueParser.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

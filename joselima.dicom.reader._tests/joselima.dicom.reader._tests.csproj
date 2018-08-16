@@ -42,7 +42,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CoreObjectsTests.cs" />
-    <Compile Include="ReaderTests.cs" />
+    <Compile Include="FileParser.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

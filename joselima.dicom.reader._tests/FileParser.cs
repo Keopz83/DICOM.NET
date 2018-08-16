@@ -5,8 +5,9 @@ using System.Collections.Generic;
 
 namespace joselima.dicom.reader._tests {
 
+
     [TestClass]
-    public class ReaderTests
+    public class FileParser
     {
 
         static readonly string testFile1 = @"C:\Users\user1\Documents\DICOM\testData\Anonymized20180815\series-000000\image-000000.dcm";
@@ -16,7 +17,7 @@ namespace joselima.dicom.reader._tests {
         public void ReadDicomMetaData_FileMetaInformationGroupLength() {
 
             //Act
-            var file = new Parser().ReadFile(testFile1, TagsDictionary.FileMetaInformationGroupLength);
+            var file = new dicom.FileParser().Parse(testFile1, TagsDictionary.FileMetaInformationGroupLength);
 
             //Assert
             var tag = TagsDictionary.FileMetaInformationGroupLength;
@@ -28,7 +29,7 @@ namespace joselima.dicom.reader._tests {
         public void ReadDicomMetaData_00020002() {
 
             //Act
-            var file = new Parser().ReadFile(testFile1, 0x00020002);
+            var file = new dicom.FileParser().Parse(testFile1, 0x00020002);
 
             //Assert
             var tag = TagsDictionary.PatientID;
@@ -40,7 +41,7 @@ namespace joselima.dicom.reader._tests {
         public void ReadDicomMetaData_PatientsName() {
 
             //Act
-            var file = new Parser().ReadFile(testFile1, TagsDictionary.PatientsName);
+            var file = new dicom.FileParser().Parse(testFile1, TagsDictionary.PatientsName);
 
             //Assert
             var tag = TagsDictionary.PatientsName;
@@ -52,7 +53,7 @@ namespace joselima.dicom.reader._tests {
         public void ReadDicomMetaData_all_except_pixel_data() {
 
             //Act
-            var file = new Parser().ReadFile(testFile1, 0x7FE0000F);
+            var file = new dicom.FileParser().Parse(testFile1, 0x7FE0000F);
 
             //Assert
             uint tagId = 0x00401001;
