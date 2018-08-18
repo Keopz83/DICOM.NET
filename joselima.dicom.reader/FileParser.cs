@@ -15,12 +15,15 @@ namespace joselima.dicom {
         static readonly int VR_SIZE_BYTES = 2;
         static readonly string DICM_PREFIX = "DICM";
 
+        static readonly UInt32 LAST_TAG_BEFORE_PIXEL_DATA = 0x7FE0000F;
+
         private UInt32 _lastTagId;
 
         private bool _isExplicitVr = true;
 
-        public File Parse(string fileAbsolutePath, Tag lastTag = null) {
-            return Parse(fileAbsolutePath, lastTag?.ID ?? 0);
+
+        public File ParseMetadata(string fileAbsolutePath) {
+            return Parse(fileAbsolutePath, LAST_TAG_BEFORE_PIXEL_DATA);
         }
 
 

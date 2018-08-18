@@ -17,7 +17,7 @@ namespace joselima.dicom.reader._tests {
         public void ReadDicomMetaData_FileMetaInformationGroupLength() {
 
             //Act
-            var file = new dicom.FileParser().Parse(testFile1, TagsDictionary.FileMetaInformationGroupLength);
+            var file = new dicom.FileParser().Parse(testFile1, TagsDictionary.FileMetaInformationGroupLength.ID);
 
             //Assert
             var tag = TagsDictionary.FileMetaInformationGroupLength;
@@ -26,14 +26,14 @@ namespace joselima.dicom.reader._tests {
         }
 
         [TestMethod]
-        public void ReadDicomMetaData_00020002() {
+        public void ReadDicomMetaData_until_tag_00020002() {
 
             //Act
             var file = new dicom.FileParser().Parse(testFile1, 0x00020002);
 
             //Assert
             var tag = TagsDictionary.PatientID;
-            Assert.AreEqual("1.2.840.10008.5.1.4.1.1.2\0", file.Attributes[0x00020002].Value.ToString(), $"Unexpected value for tag {tag}.");
+            Assert.AreEqual("1.2.840.10008.5.1.4.1.1.2", file.Attributes[0x00020002].Value.ToString(), $"Unexpected value for tag {tag}.");
 
         }
 
@@ -41,7 +41,7 @@ namespace joselima.dicom.reader._tests {
         public void ReadDicomMetaData_PatientsName() {
 
             //Act
-            var file = new dicom.FileParser().Parse(testFile1, TagsDictionary.PatientsName);
+            var file = new dicom.FileParser().Parse(testFile1, TagsDictionary.PatientsName.ID);
 
             //Assert
             var tag = TagsDictionary.PatientsName;
@@ -53,7 +53,7 @@ namespace joselima.dicom.reader._tests {
         public void ReadDicomMetaData_all_except_pixel_data() {
 
             //Act
-            var file = new dicom.FileParser().Parse(testFile1, 0x7FE0000F);
+            var file = new dicom.FileParser().ParseMetadata(testFile1);
 
             //Assert
             uint tagId = 0x00401001;

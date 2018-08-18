@@ -13,25 +13,25 @@ namespace joselima.dicom {
 
             switch (vr) {
                 case VR.AE:
-                    return Encoding.UTF8.GetString(rawValue, 0, rawValue.Length).Trim();
+                    return ParseString(rawValue);
 
                 case VR.AS:
-                    return Encoding.UTF8.GetString(rawValue, 0, rawValue.Length).Trim();
+                    return ParseString(rawValue);
 
                 case VR.AT: //Attribute Tag
                     return rawValue; //TODO
 
                 case VR.CS:
-                    return Encoding.UTF8.GetString(rawValue, 0, rawValue.Length).Trim();
+                    return ParseString(rawValue);
 
                 case VR.DA:
-                    return Encoding.UTF8.GetString(rawValue, 0, rawValue.Length).Trim();
+                    return ParseString(rawValue);
 
                 case VR.DS:
-                    return Encoding.UTF8.GetString(rawValue, 0, rawValue.Length).Trim();
+                    return ParseString(rawValue);
 
                 case VR.DT:
-                    return Encoding.UTF8.GetString(rawValue, 0, rawValue.Length).Trim();
+                    return ParseString(rawValue);
 
                 case VR.FL: //Floating Point Single
                     return rawValue; //TODO
@@ -39,13 +39,13 @@ namespace joselima.dicom {
                 case VR.FD: //Floating Point Double
                     return rawValue; //TODO
                 case VR.IS:
-                    return Encoding.UTF8.GetString(rawValue, 0, rawValue.Length).Trim();
+                    return ParseString(rawValue);
 
                 case VR.LO:
-                    return Encoding.UTF8.GetString(rawValue, 0, rawValue.Length).Trim();
+                    return ParseString(rawValue);
 
                 case VR.LT:
-                    return Encoding.UTF8.GetString(rawValue, 0, rawValue.Length).Trim();
+                    return ParseString(rawValue);
 
                 case VR.OB:
                     return rawValue;
@@ -56,28 +56,28 @@ namespace joselima.dicom {
                 case VR.OW:
                     return rawValue; //TODO
                 case VR.PN:
-                    return Encoding.UTF8.GetString(rawValue, 0, rawValue.Length).Trim();
+                    return ParseString(rawValue);
 
                 case VR.SH:
-                    return Encoding.UTF8.GetString(rawValue, 0, rawValue.Length).Trim();
+                    return ParseString(rawValue);
 
                 case VR.SL:
                     return rawValue; //TODO
 
-                case VR.SQ: 
+                case VR.SQ:
                     return rawValue; //TODO
 
                 case VR.SS:
                     return rawValue; //TODO
 
                 case VR.ST:
-                    return Encoding.UTF8.GetString(rawValue, 0, rawValue.Length).Trim();
+                    return ParseString(rawValue);
 
                 case VR.TM:
-                    return Encoding.UTF8.GetString(rawValue, 0, rawValue.Length).Trim();
+                    return ParseString(rawValue);
 
                 case VR.UI:
-                    return Encoding.UTF8.GetString(rawValue, 0, rawValue.Length).Trim();
+                    return ParseString(rawValue);
 
                 case VR.UL:
                     return BitConverter.ToUInt32(rawValue, 0);
@@ -94,6 +94,10 @@ namespace joselima.dicom {
                 default:
                     return rawValue;
             }
+        }
+
+        private static string ParseString(byte[] rawValue) {
+            return Encoding.UTF8.GetString(rawValue, 0, rawValue.Length).Trim().Trim('\0');
         }
     }
 }
