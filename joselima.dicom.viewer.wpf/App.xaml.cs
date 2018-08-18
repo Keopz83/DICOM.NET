@@ -1,7 +1,6 @@
 ﻿using joselima.dicom.viewer.wpf.ViewModels;
 using joselima.dicom.viewer.wpf.Views;
-using System.Data;
-using System.Linq;
+using System;
 using System.Windows;
 
 namespace joselima.dicom.viewer.wpf {
@@ -10,14 +9,27 @@ namespace joselima.dicom.viewer.wpf {
     /// </summary>
     public partial class App : Application {
 
+        private static MainWindow _mainWindow;
+
         protected override void OnStartup(StartupEventArgs e) {
 
             base.OnStartup(e);
 
-            var mainWindow = new MainWindow() {
+            DataSetViewModel.OnException += NotificationHandler;
+
+            _mainWindow = new MainWindow() {
                 DataContext = new DataSetViewModel()
             };
-            mainWindow.Show();
+            _mainWindow.Show();
+        }
+
+        private static void NotificationHandler(object obj, Exception exc) {
+
+            var notificationWindow = new NotificationWindow() {
+                DataContext = new NotificationViewModel() { Message = exc.ToString() }
+            };
+            notificationWindow.Owner = _mainWindow;
+            notificationWindow.Show();
         }
     }
 }

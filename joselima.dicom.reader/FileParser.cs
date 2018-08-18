@@ -21,6 +21,8 @@ namespace joselima.dicom {
 
         private bool _isExplicitVr = true;
 
+        public event EventHandler<string> OnInfo;
+        public event EventHandler<string> OnWarning;
 
         public File ParseMetadata(string fileAbsolutePath) {
             return Parse(fileAbsolutePath, LAST_TAG_BEFORE_PIXEL_DATA);
@@ -31,43 +33,45 @@ namespace joselima.dicom {
 
             _lastTagId = lastTagId;
 
-            var streamPos = 0;
             var attributeSet = new AttributeSet();
             using(var file = System.IO.File.OpenRead(fileAbsolutePath)) {
 
                 //Preamble
                 var preamble = new byte[PREAMBLE_SIZE_BYTES];
-                streamPos += file.Read(preamble, streamPos, preamble.Length);
+                file.Read(preamble, 0, preamble.Length);
 
                 //'DICM' Prefix
                 var prefixRaw = new byte[PREFIX_SIZE_BYTES];
-                streamPos += file.Read(prefixRaw, 0, prefixRaw.Length);
+                file.Read(prefixRaw, 0, prefixRaw.Length);
 
                 string prefixUTF8 = Encoding.UTF8.GetString(prefixRaw, 0, prefixRaw.Length);
                 if (prefixUTF8.Equals(DICM_PREFIX, StringComparison.InvariantCultureIgnoreCase)) {
-                    Console.WriteLine($"Found '{DICM_PREFIX}' prefix.");
+                    OnInfo?.Invoke(this, $"Found '{DICM_PREFIX}' prefix.");
+                } else {
+                    OnWarning?.Invoke(this, $"Could not find '{DICM_PREFIX}' prefix.");
                 }
 
 
                 while (true) {
 
                     Tag tag = ParseNextTag(file);
-                    Console.Write($"{tag}");
                     if (_lastTagId > 0 && tag.ID > _lastTagId) break;
 
                     VR vr = ParseVr(file, _isExplicitVr);
                     tag.VR = vr;
-                    Console.Write($"\t{vr.ToString()}");
+                    
 
                     int valueLength = ParseValueLength(file, _isExplicitVr, vr);
-                    Console.Write($"\t{valueLength}");
 
-                    var value = ParseNextValue(file, vr, valueLength);
-                    Console.Write($"\t{value.ToString()}");
+                    object value = null;
+                    if(valueLength > 0) {
+                        value = ParseNextValue(file, vr, valueLength);
+                    }                   
 
                     var newAttribute = new Attribute(tag, value);
                     attributeSet.Add(newAttribute.Tag.ID, newAttribute);
-                    Console.WriteLine();
+
+                    OnInfo?.Invoke(this, attributeSet.ToString());
                 }
                 
 
