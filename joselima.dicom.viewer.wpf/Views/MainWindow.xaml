@@ -7,7 +7,7 @@
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         xmlns:vm="clr-namespace:joselima.dicom.viewer.wpf.ViewModels"
         mc:Ignorable="d"
-        Title="DICOM Viewer" MinHeight="250" MinWidth="350" 
+        Title="DICOM Viewer" MinWidth="350" MinHeight="200"
         Background="#FF1F1F1F"
         ResizeMode="CanResize" SizeToContent="WidthAndHeight"
         >
@@ -22,19 +22,17 @@
         </vm:DataSetViewModel>
     </Window.Resources>
 
-    <Grid>
-        <StackPanel>
-
-
-            <Border Background="#111111" Height="100" Margin="8,8,8,0">
-                <Label Content="Drop DICOM file or folder..." 
+    <Grid AllowDrop="True" Drop="Label_Drop">
+        
+        <Border Background="#111111" Margin="8,8,8,8">
+            <Label Content="Drop DICOM file or folder..." 
                        Foreground="#333333"/>
-            </Border>
-            <ScrollViewer VerticalScrollBarVisibility="Auto" 
-                          MaxHeight="500"
-                          Margin="8">
+        </Border>
+
+        <ScrollViewer VerticalScrollBarVisibility="Auto" 
+                        MaxHeight="500">
             <ItemsControl d:DataContext="{StaticResource MockDataSet}" 
-                          ItemsSource="{Binding Items}" >
+                            ItemsSource="{Binding Items}" >
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
                         <Border BorderBrush="#222222" BorderThickness="1" Background="#333333" >
@@ -47,6 +45,5 @@
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
         </ScrollViewer>
-        </StackPanel>
     </Grid>
 </Window>
