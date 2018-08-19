@@ -1,6 +1,7 @@
 ﻿using joselima.dicom;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,7 +10,21 @@ namespace joselima.dicom {
 
     public class ValueParser {
 
-        public static object ParseValue(VR vr, byte[] rawValue) {
+        public static object ParseValue(Stream stream, VR vr, int valueLength) {
+
+            if (valueLength == 0) {
+                return null;
+            }
+
+            //Value
+            var valueRaw = new byte[valueLength];
+            stream.Read(valueRaw, 0, valueRaw.Length);
+            object value = ParseValue(valueRaw, vr);
+
+            return value;
+        }
+
+        public static object ParseValue(byte[] rawValue, VR vr) {
 
             switch (vr) {
                 case VR.AE:

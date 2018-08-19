@@ -53,25 +53,22 @@ namespace joselima.dicom {
 
 
                 while (true) {
+                    try {
+                        var pos = file.Position;
+                        var newAttribute = ParseAttribute(file);
+                        if (newAttribute == null) {
+                            OnWarning?.Invoke(this, $"Could not parse attribute at position: {pos}.");
+                            continue;
+                        }
+                        attributeSet.Add(newAttribute.Tag.ID, newAttribute);
+                        OnInfo?.Invoke(this, attributeSet.ToString());
 
-                    Tag tag = ParseNextTag(file);
-                    if (_lastTagId > 0 && tag.ID > _lastTagId) break;
-
-                    VR vr = ParseVr(file, _isExplicitVr);
-                    tag.VR = vr;
-                    
-
-                    int valueLength = ParseValueLength(file, _isExplicitVr, vr);
-
-                    object value = null;
-                    if(valueLength > 0) {
-                        value = ParseNextValue(file, vr, valueLength);
-                    }                   
-
-                    var newAttribute = new Attribute(tag, value);
-                    attributeSet.Add(newAttribute.Tag.ID, newAttribute);
-
-                    OnInfo?.Invoke(this, attributeSet.ToString());
+                        if (_lastTagId > 0 && newAttribute.Tag.ID >= _lastTagId)
+                            break;
+                    }
+                    catch (EndOfStreamException) {
+                        break;
+                    }
                 }
                 
 
@@ -83,24 +80,32 @@ namespace joselima.dicom {
 
         }
 
-        private object ParseNextValue(FileStream file, VR vr, int valueLength) {
+        public static Attribute ParseAttribute(Stream stream, bool isExplicitVr = true) {
 
-            if (valueLength == 0) {
-                return null;
-            }
+            //Tag
+            Tag tag = ParseTag(stream);
+
+            //VR
+            VR vr = ParseVr(stream, isExplicitVr);
+            tag.VR = vr;
+
+            //Value length
+            int valueLength = ParseValueLength(stream, vr, isExplicitVr);
 
             //Value
-            var valueRaw = new byte[valueLength];
-            file.Read(valueRaw, 0, valueRaw.Length);
-            object value = ValueParser.ParseValue(vr, valueRaw);
+            object value = null;
+            if (valueLength > 0) {
+                value = ValueParser.ParseValue(stream, vr, valueLength);
+            }
 
-            return value;
+            //Attribute
+            var newAttribute = new Attribute(tag, value);
+            return newAttribute;
         }
 
-
-        private static VR ParseVr(FileStream file, bool isExplicitVr) {
+        public static VR ParseVr(Stream stream, bool isExplicitVr = true) {
             var vrRaw = new byte[VR_SIZE_BYTES];
-            file.Read(vrRaw, 0, vrRaw.Length);
+            stream.Read(vrRaw, 0, vrRaw.Length);
 
             string vrUTF8 = Encoding.UTF8.GetString(vrRaw, 0, vrRaw.Length);
             var result = Enum.TryParse(vrUTF8, out VR vr);
@@ -112,7 +117,7 @@ namespace joselima.dicom {
                 case VR.OF:
                 case VR.SQ:
                 case VR.UN:
-                    file.Read(new byte[2], 0, 2);
+                    stream.Read(new byte[2], 0, 2);
                     break;
                 default:
                     break;
@@ -122,7 +127,7 @@ namespace joselima.dicom {
         }
 
 
-        private static int ParseValueLength(FileStream file, bool isExplicitVr, VR vr) {
+        public static int ParseValueLength(Stream stream, VR vr, bool isExplicitVr = true) {
 
             var valueLengthByteLength = 2;
 
@@ -146,22 +151,22 @@ namespace joselima.dicom {
             }
 
             var lengthRaw = new byte[valueLengthByteLength];
-            file.Read(lengthRaw, 0, lengthRaw.Length);
+            stream.Read(lengthRaw, 0, lengthRaw.Length);
             var valueLength = valueLengthByteLength == 2 ? BitConverter.ToInt16(lengthRaw, 0) : BitConverter.ToInt32(lengthRaw, 0);
             
             return valueLength;
         }
 
 
-        private static Tag ParseNextTag(FileStream file) {
+        public static Tag ParseTag(Stream stream) {
 
             //Tag group number
             var groupRaw = new byte[GROUP_SIZE_BYTES];
-            file.Read(groupRaw, 0, groupRaw.Length);
+            stream.Read(groupRaw, 0, groupRaw.Length);
 
             //Tag element number
             var elementRaw = new byte[ELEMENT_SIZE_BYTES];
-            file.Read(elementRaw, 0, elementRaw.Length);
+            stream.Read(elementRaw, 0, elementRaw.Length);
 
             int tagId = (BitConverter.ToInt16(groupRaw, 0) << 16) + BitConverter.ToInt16(elementRaw, 0);
             var tag = TagsDictionary.Get((UInt32)tagId);
